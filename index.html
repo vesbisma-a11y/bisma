@@ -1,685 +1,1215 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Alfindo</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
+    <title>Kyu Okami Group - Premium Personal Finance Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #0b0c10;
+            /* Dioptimalkan: Menggunakan warna solid bertekstur gelap premium untuk menggantikan efek blur yang berat */
+            --bg-card: #151b24; 
+            --bg-input: #1f2833;
+            --text-main: #c5c6c7;
+            --text-title: #ffffff;
+            --accent-emerald: #00ffa3;
+            --accent-blue: #4fc3f7;
+            --accent-danger: #ff4a5a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Dioptimalkan: Menghapus filter blur real-time pada gambar besar dan mengaktifkan akselerasi hardware */
+        .hero-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=1280&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            opacity: 0.50; /* Menggunakan opacity rendah agar performa scroll licin dan ramah HP */
+            z-index: -2;
+            will-change: transform; /* Trik agar browser mengoptimalkan layer rendering */
+        }
+
+        .dark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(11, 12, 16, 0.95) 0%, rgba(31, 40, 51, 0.8) 100%);
+            z-index: -1;
+        }
+
+        /* Layout Grid Utama */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+        }
+
+        /* Sidebar Navigation - Bebas dari efek blur transparan */
+        sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            height: calc(100vh - 40px);
+            position: sticky;
+            top: 20px;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-title);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .brand i {
+            color: var(--accent-emerald);
+        }
+
+        .nav-links {
+            list-style: none;
+            margin-top: 25px;
+            flex-grow: 1;
+        }
+
+        .nav-links li {
+            margin-bottom: 10px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(0, 255, 163, 0.1);
+            color: var(--accent-emerald);
+            transform: translateX(5px);
+        }
+
+        /* Main Content Area */
+        main {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Header Component */
+        header {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .header-left h1 {
+            color: var(--text-title);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .widget-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .widget-item i {
+            color: var(--accent-blue);
+        }
+
+        /* Card Widget Profile */
+        .profile-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .profile-img-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-emerald);
+            overflow: hidden;
+            background: #1f2833;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-img-container i {
+            font-size: 2rem;
+            color: var(--text-main);
+        }
+
+        .uploaded-profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-info h3 {
+            color: var(--text-title);
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .profile-info p {
+            font-size: 0.85rem;
+            color: var(--accent-emerald);
+            background: rgba(0, 255, 163, 0.08);
+            padding: 2px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Grid Angka Keuangan Utama */
+        .finance-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .fin-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-premium);
+            transition: transform 0.2s ease;
+        }
+
+        .fin-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .fin-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .card-balance::before { background: var(--accent-emerald); }
+        .card-savings::before { background: var(--accent-blue); }
+        .card-invest::before { background: #e040fb; }
+        .card-expense::before { background: var(--accent-danger); }
+
+        .fin-card p {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .fin-card h2 {
+            color: var(--text-title);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .fin-card i {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 1.8rem;
+            opacity: 0.15;
+        }
+
+        /* Grafik & Form Container */
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .section-card h3 {
+            color: var(--text-title);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-card h3 i {
+            color: var(--accent-emerald);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-empty-msg {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+        }
+
+        /* Input Form & Buttons */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-emerald);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #00ffa3 0%, #00b371 100%);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-premium:hover {
+            opacity: 0.9;
+        }
+
+        .btn-reset {
+            background: rgba(255, 74, 90, 0.1);
+            color: var(--accent-danger);
+            border: 1px solid rgba(255, 74, 90, 0.2);
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: var(--accent-danger);
+            color: #fff;
+        }
+
+        .btn-profile-upload {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            transition: all 0.2s;
+        }
+        .btn-profile-upload:hover {
+            background: rgba(0, 255, 163, 0.1);
+            color: var(--accent-emerald);
+            border-color: rgba(0, 255, 163, 0.3);
+        }
+
+        /* Progress Bar Target Tabungan */
+        .progress-wrapper {
+            margin-top: 15px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-bg {
+            background: var(--bg-input);
+            height: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-emerald));
+            width: 0%;
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        /* Table Area */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 15px;
+            color: var(--text-title);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-income { background: rgba(0, 255, 163, 0.1); color: var(--accent-emerald); }
+        .badge-expense { background: rgba(255, 74, 90, 0.1); color: var(--accent-danger); }
+        .badge-invest { background: rgba(79, 195, 251, 0.1); color: var(--accent-blue); }
+        .badge-saving { background: rgba(224, 64, 251, 0.1); color: #e040fb; }
+
+        /* Quotes & Mindset Section */
+        .quotes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .quote-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 0 15px 15px 0;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-emerald);
+        }
+
+        .quote-card blockquote {
+            font-style: italic;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            color: var(--text-title);
+        }
+
+        .quote-card cite {
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .mindset-card {
+            background: rgba(0, 255, 163, 0.02);
+            border: 1px dashed rgba(0, 255, 163, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .mindset-card h4 {
+            color: var(--accent-emerald);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .mindset-card ul {
+            list-style-type: none;
+        }
+
+        .mindset-card li {
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mindset-card li i {
+            color: var(--accent-emerald);
+            font-size: 0.75rem;
+        }
+
+        /* Multi-Tab Toggling */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active-section {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            sidebar {
+                height: auto;
+                position: relative;
+                top: 0;
+            }
+            .finance-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .finance-grid {
+                grid-template-columns: 1fr;
+            }
+            .dashboard-row, .quotes-grid {
+                grid-template-columns: 1fr;
+            }
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .header-right {
+                flex-direction: column;
+                width: 100%;
+            }
+            .widget-item {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero-bg"></div>
+    <div class="dark-overlay"></div>
+
+    <div class="container">
+        <sidebar>
+            <div>
+                <div class="brand">
+                    <i class="fa-solid to fa-wallet-investment"></i>
+                    <span>KYU OKAMI FINANCE</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" class="active" onclick="switchSection('dashboard', this)"><i class="fa-solid fa-chart-pie"></i>Dashboard</a></li>
+                    <li><a href="#" onclick="switchSection('catatan', this)"><i class="fa-solid fa-pen-to-square"></i>Catatan Finance</a></li>
+                    <li><a href="#" onclick="switchSection('riwayat', this)"><i class="fa-solid fa-history"></i>Riwayat Transaksi</a></li>
+                    <li><a href="#" onclick="switchSection('investasi-sec', this)"><i class="fa-solid fa-chart-line"></i>Investasi Aktif</a></li>
+                    <li><a href="#" onclick="switchSection('goals', this)"><i class="fa-solid fa-bullseye"></i>Goals & Motivasi</a></li>
+                </ul>
+            </div>
+            
+            <div class="profile-card" style="padding: 12px; background: rgba(0,0,0,0.2); gap: 12px; border-radius: 15px;">
+                <div class="profile-img-container" id="sidebar-profile-container" style="width: 45px; height: 45px; border-color: var(--accent-blue);">
+                    <i class="fa-solid fa-user-shield" style="font-size: 1.1rem;"></i>
+                </div>
+                <div class="profile-info">
+                    <h4 style="color:#fff; font-size:0.85rem;">Alfindo A. Akbar</h4>
+                    <p style="font-size:0.7rem; padding:1px 6px;">Premium Account</p>
+                </div>
+            </div>
+        </sidebar>
+
+        <main>
+            <header>
+                <div class="header-left">
+                    <h1>Sistem Jurnal Keuangan</h1>
+                    <span style="font-size: 0.85rem; color: var(--accent-emerald);">Secure Local-Storage Ledger Active</span>
+                </div>
+                <div class="header-right">
+                    <div class="widget-item">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span id="txt-date">Memuat Tanggal...</span>
+                    </div>
+                    <div class="widget-item">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="txt-time">00:00:00</span>
+                    </div>
+                    <div class="widget-item">
+                        <i class="fa-solid fa-cloud-sun"></i>
+                        <span>Bandar Lampung, ID</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="dashboard" class="content-section active-section">
+                <div class="profile-card">
+                    <div class="profile-img-container" id="main-profile-container">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h3>Alfindo Ahmad Akbar</h3>
+                        <p>Undergraduate Student @ Polinela</p>
+                        <div style="font-size: 0.8rem; margin-top: 5px; color: var(--text-main);">Program Studi: Teknologi Rekayasa Otomotif</div>
+                        
+                        <input type="file" id="profile-upload-input" style="display: none;" accept="image/*">
+                        <button type="button" class="btn-profile-upload" onclick="triggerProfileUpload()"><i class="fa-solid fa-camera"></i> Ganti Foto Profil</button>
+                    </div>
+                </div>
+
+                <div class="finance-grid">
+                    <div class="fin-card card-balance">
+                        <p>Total Saldo Netto</p>
+                        <h2 id="total-saldo">Rp 0</h2>
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <div class="fin-card card-savings">
+                        <p>Total Tabungan</p>
+                        <h2 id="total-tabungan">Rp 0</h2>
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <div class="fin-card card-invest">
+                        <p>Total Investasi</p>
+                        <h2 id="total-investasi">Rp 0</h2>
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <div class="fin-card card-expense">
+                        <p>Total Pengeluaran</p>
+                        <h2 id="total-pengeluaran">Rp 0</h2>
+                        <i class="fa-solid fa-money-bill-transfer"></i>
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="section-card">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Aliran Kas Bulanan</h3>
+                        <div class="chart-container" id="chart-wrapper">
+                            <div class="chart-empty-msg" id="msg-empty-chart">Belum ada data transaksi. Grafik akan muncul setelah Anda menginput data uang masuk atau uang keluar.</div>
+                            <canvas id="financeChart" style="display:none;"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h3><i class="fa-solid fa-bullseye"></i> Target & Alokasi Tabungan</h3>
+                        <div class="form-group">
+                            <label>Atur Target Finansial Baru (Rp)</label>
+                            <input type="number" id="input-target-val" class="form-control" placeholder="Contoh: 10000000" oninput="updateTargetProgress()">
+                        </div>
+                        <div class="progress-wrapper">
+                            <div class="progress-info">
+                                <span>Progress Pencapaian Target</span>
+                                <span id="txt-progress-pct">0%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-progress-fill"></div>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.8rem; text-align: right; color: var(--accent-blue);" id="txt-target-rem">Target Belum Ditentukan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="catatan" class="content-section">
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-square-plus"></i> Input Jurnal Catatan Transaksi Baru</h3>
+                    <form id="finance-form" onsubmit="handleTransaction(event)">
+                        <div class="dashboard-row" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div class="form-group">
+                                <label>Jenis Alokasi Kas</label>
+                                <select id="form-type" class="form-control" required onchange="toggleInvestType()">
+                                    <option value="income">Uang Masuk (Pendapatan)</option>
+                                    <option value="expense">Uang Keluar (Pengeluaran)</option>
+                                    <option value="saving">Tabungan (Alokasi Celengan)</option>
+                                    <option value="invest">Investasi (Portofolio Aktif)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="group-invest-type" style="display: none;">
+                                <label>Instrumen Pasar / Jenis Investasi</label>
+                                <select id="form-invest-type" class="form-control">
+                                    <option value="Saham">Saham Berwujud / Ekuitas</option>
+                                    <option value="Crypto">Crypto Asset (Aset Digital)</option>
+                                    <option value="Forex">Forex (Valuta Asing)</option>
+                                    <option value="Emas">Logam Mulia / Emas Batangan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-row" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+                            <div class="form-group">
+                                <label>Nominal Jumlah Uang (Rp)</label>
+                                <input type="number" id="form-amount" class="form-control" placeholder="Masukkan jumlah nominal murni" required min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Tanggal Transaksi</label>
+                                <input type="date" id="form-date" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Keterangan / Sumber / Deskripsi</label>
+                            <input type="text" id="form-desc" class="form-control" placeholder="Contoh: Gaji bulanan, Beli HP baru, Investasi emas Antam" required>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn-premium"><i class="fa-solid fa-floppy-disk"></i> Amankan & Catat Transaksi</button>
+                            <button type="button" class="btn-reset" onclick="resetLedger()" title="Reset Semua Data ke Nol"><i class="fa-solid fa-trash-can"></i> Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="riwayat" class="content-section">
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-list-check"></i> Lembar Jurnal & Riwayat Transaksi Komplit</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kategori</th>
+                                    <th>Keterangan / Detail</th>
+                                    <th>Jumlah Transaksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-history-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="investasi-sec" class="content-section">
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-chart-line"></i> Ringkasan Alokasi Portofolio Finansial</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Instrumen Sektor</th>
+                                    <th>Total Dana Terdistribusi</th>
+                                    <th>Status Kepemilikan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fa-solid fa-arrow-trend-up" style="color:var(--accent-emerald); margin-right:10px;"></i> Saham</td>
+                                    <td id="inv-saham">Rp 0</td>
+                                    <td><span class="badge badge-income">Aktif</span></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-brands fa-bitcoin" style="color:#ff9800; margin-right:10px;"></i> Crypto</td>
+                                    <td id="inv-crypto">Rp 0</td>
+                                    <td><span class="badge badge-income">Aktif</span></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-money-bill-trend-up" style="color:var(--accent-blue); margin-right:10px;"></i> Forex</td>
+                                    <td id="inv-forex">Rp 0</td>
+                                    <td><span class="badge badge-income">Aktif</span></td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-coins" style="color:#ffd700; margin-right:10px;"></i> Emas</td>
+                                    <td id="inv-emas">Rp 0</td>
+                                    <td><span class="badge badge-income">Aktif</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="goals" class="content-section">
+                <div class="section-card">
+                    <h3><i class="fa-solid fa-quote-left"></i> Quotes Investor & Pemikir Hebat</h3>
+                    <div class="quotes-grid">
+                        <div class="quote-card">
+                            <blockquote>"Don't save what is left after spending; spend what is left after saving."</blockquote>
+                            <cite>— Warren Buffett</cite>
+                        </div>
+                        <div class="quote-card" style="border-left-color: var(--accent-blue);">
+                            <blockquote>"It's not how much money you make, but how much money you keep."</blockquote>
+                            <cite>— Robert Kiyosaki</cite>
+                        </div>
+                        <div class="quote-card" style="border-left-color: #ff9800;">
+                            <blockquote>"If something is important enough, you should try even if the probable outcome is failure."</blockquote>
+                            <cite>— Elon Musk</cite>
+                        </div>
+                        <div class="quote-card" style="border-left-color: #e040fb;">
+                            <blockquote>"Principles are ways of successfully dealing with reality to get what you want out of life."</blockquote>
+                            <cite>— Ray Dalio</cite>
+                        </div>
+                    </div>
+
+                    <div class="mindset-card">
+                        <h4><i class="fa-solid fa-brain"></i> Financial Mindset & Kedisiplinan</h4>
+                        <ul>
+                            <li><i class="fa-solid fa-check"></i> <b>Disiplin Menabung:</b> Masa depan finansial yang kokoh dibangun dari kebiasaan menyisihkan uang secara konsisten, bukan menunggu sisa uang di akhir bulan.</li>
+                            <li><i class="fa-solid fa-check"></i> <b>Mindset Uang:</b> Uang adalah alat tukar energi dan kebebasan waktu, kelola dengan bijak untuk membeli aset, bukan mengoleksi liabilitas.</li>
+                            <li><i class="fa-solid fa-check"></i> <b>Investasi Jangka Panjang:</b> Menghargai proses compounding interest (bunga bergulung) menjauhkan diri dari keputusan spekulatif yang berisiko merusak modal dasar.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        poppins: ['Poppins', 'sans-serif'],
-                        space: ['Space Grotesk', 'sans-serif'],
-                    },
-                    colors: {
-                        neonBlue: '#00f3ff',
-                        neonPurple: '#bc13fe',
-                        darkBg: '#0b0f19',
-                        cardBg: '#151b2b'
+        let appState = {
+            transactions: [],
+            targetSavings: 0,
+            profileImage: null, 
+            totals: {
+                saldo: 0,
+                tabungan: 0,
+                investasi: 0,
+                pengeluaran: 0
+            },
+            investDetails: {
+                Saham: 0,
+                Crypto: 0,
+                Forex: 0,
+                Emas: 0
+            }
+        };
+
+        let myChart = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initClockAndCalendar();
+            setDefaultDateInput();
+            loadStateFromStorage();
+            renderProfile(); 
+            renderDashboardData();
+            initProfileUploadHandler(); 
+        });
+
+        function initClockAndCalendar() {
+            const dateEl = document.getElementById('txt-date');
+            const timeEl = document.getElementById('txt-time');
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            dateEl.innerText = today.toLocaleDateString('id-ID', options);
+
+            setInterval(() => {
+                const now = new Date();
+                timeEl.innerText = now.toLocaleTimeString('id-ID');
+            }, 1000);
+        }
+
+        function setDefaultDateInput() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('form-date').value = today;
+        }
+
+        function triggerProfileUpload() {
+            document.getElementById('profile-upload-input').click();
+        }
+
+        function initProfileUploadHandler() {
+            const input = document.getElementById('profile-upload-input');
+            input.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(readerEvent) {
+                        appState.profileImage = readerEvent.target.result;
+                        saveStateToStorage();
+                        renderProfile(); 
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function renderProfile() {
+            const mainContainer = document.getElementById('main-profile-container');
+            const sidebarContainer = document.getElementById('sidebar-profile-container');
+            
+            const defaultMainHTML = '<i class="fa-solid fa-user-tie"></i>';
+            const defaultSidebarHTML = '<i class="fa-solid fa-user-shield" style="font-size: 1.1rem;"></i>';
+
+            if (appState.profileImage) {
+                mainContainer.innerHTML = `<img src="${appState.profileImage}" class="uploaded-profile-img" alt="Foto Profil">`;
+                sidebarContainer.innerHTML = `<img src="${appState.profileImage}" class="uploaded-profile-img" alt="Photo">`;
+            } else {
+                mainContainer.innerHTML = defaultMainHTML;
+                sidebarContainer.innerHTML = defaultSidebarHTML;
+            }
+        }
+
+        function toggleInvestType() {
+            const type = document.getElementById('form-type').value;
+            const investGroup = document.getElementById('group-invest-type');
+            investGroup.style.display = (type === 'invest') ? 'block' : 'none';
+        }
+
+        function switchSection(sectionId, element) {
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.remove('active-section');
+            });
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            document.getElementById(sectionId).classList.add('active-section');
+            element.classList.add('active');
+
+            if (sectionId === 'dashboard') {
+                renderChartSystem();
+            }
+        }
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        function handleTransaction(event) {
+            event.preventDefault();
+
+            const type = document.getElementById('form-type').value;
+            const investType = document.getElementById('form-invest-type').value;
+            const amount = parseInt(document.getElementById('form-amount').value);
+            const date = document.getElementById('form-date').value;
+            const desc = document.getElementById('form-desc').value;
+
+            const newTx = {
+                id: Date.now(),
+                type,
+                investType: type === 'invest' ? investType : null,
+                amount,
+                date,
+                desc
+            };
+
+            appState.transactions.push(newTx);
+            recalculateFinanceState();
+            saveStateToStorage();
+            renderDashboardData();
+
+            document.getElementById('form-amount').value = '';
+            document.getElementById('form-desc').value = '';
+            setDefaultDateInput();
+            
+            switchSection('dashboard', document.querySelectorAll('.nav-links a')[0]);
+        }
+
+        function recalculateFinanceState() {
+            appState.totals = { saldo: 0, tabungan: 0, investasi: 0, pengeluaran: 0 };
+            appState.investDetails = { Saham: 0, Crypto: 0, Forex: 0, Emas: 0 };
+
+            appState.transactions.forEach(tx => {
+                if (tx.type === 'income') {
+                    appState.totals.saldo += tx.amount;
+                } else if (tx.type === 'expense') {
+                    appState.totals.saldo -= tx.amount;
+                    appState.totals.pengeluaran += tx.amount;
+                } else if (tx.type === 'saving') {
+                    appState.totals.saldo -= tx.amount; 
+                    appState.totals.tabungan += tx.amount;
+                } else if (tx.type === 'invest') {
+                    appState.totals.saldo -= tx.amount; 
+                    appState.totals.investasi += tx.amount;
+                    if (appState.investDetails[tx.investType] !== undefined) {
+                        appState.investDetails[tx.investType] += tx.amount;
                     }
+                }
+            });
+        }
+
+        function renderDashboardData() {
+            document.getElementById('total-saldo').innerText = formatRupiah(appState.totals.saldo);
+            document.getElementById('total-tabungan').innerText = formatRupiah(appState.totals.tabungan);
+            document.getElementById('total-investasi').innerText = formatRupiah(appState.totals.investasi);
+            document.getElementById('total-pengeluaran').innerText = formatRupiah(appState.totals.pengeluaran);
+
+            updateTargetProgress();
+
+            const tableBody = document.getElementById('table-history-body');
+            tableBody.innerHTML = '';
+            
+            if (appState.transactions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:rgba(255,255,255,0.2);">Belum ada riwayat transaksi recorded.</td></tr>`;
+            } else {
+                const sortedTxs = [...appState.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+                sortedTxs.forEach(tx => {
+                    let badgeClass = '';
+                    let labelType = '';
+                    let dispAmount = formatRupiah(tx.amount);
+
+                    switch(tx.type) {
+                        case 'income': badgeClass = 'badge-income'; labelType = 'Uang Masuk'; break;
+                        case 'expense': badgeClass = 'badge-expense'; labelType = 'Uang Keluar'; dispAmount = '-' + dispAmount; break;
+                        case 'saving': badgeClass = 'badge-saving'; labelType = 'Tabungan'; break;
+                        case 'invest': badgeClass = 'badge-invest'; labelType = `Investasi (${tx.investType})`; break;
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${tx.date}</td>
+                        <td><span class="badge ${badgeClass}">${labelType}</span></td>
+                        <td>${tx.desc}</td>
+                        <td style="font-weight:600; color:${tx.type === 'expense' ? 'var(--accent-danger)' : '#fff'}">${dispAmount}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            document.getElementById('inv-saham').innerText = formatRupiah(appState.investDetails.Saham);
+            document.getElementById('inv-crypto').innerText = formatRupiah(appState.investDetails.Crypto);
+            document.getElementById('inv-forex').innerText = formatRupiah(appState.investDetails.Forex);
+            document.getElementById('inv-emas').innerText = formatRupiah(appState.investDetails.Emas);
+
+            renderChartSystem();
+        }
+
+        function updateTargetProgress() {
+            const inputVal = document.getElementById('input-target-val').value;
+            appState.targetSavings = inputVal ? parseInt(inputVal) : 0;
+            
+            const pctEl = document.getElementById('txt-progress-pct');
+            const fillEl = document.getElementById('bar-progress-fill');
+            const remEl = document.getElementById('txt-target-rem');
+
+            if (appState.targetSavings <= 0) {
+                pctEl.innerText = '0%';
+                fillEl.style.width = '0%';
+                remEl.innerText = 'Target Belum Ditentukan';
+                return;
+            }
+
+            let pct = Math.floor((appState.totals.tabungan / appState.targetSavings) * 100);
+            if (pct > 100) pct = 100; 
+
+            pctEl.innerText = `${pct}%`;
+            fillEl.style.width = `${pct}%`;
+
+            const sisa = appState.targetSavings - appState.totals.tabungan;
+            if (sisa <= 0) {
+                remEl.innerText = 'Selamat! Target finansial Anda telah terpenuhi.';
+                remEl.style.color = 'var(--accent-emerald)';
+            } else {
+                remEl.innerText = `Sisa alokasi kekurangan target: ${formatRupiah(sisa)}`;
+                remEl.style.color = 'var(--accent-blue)';
+            }
+        }
+
+        function renderChartSystem() {
+            const chartCanvas = document.getElementById('financeChart');
+            const emptyMsg = document.getElementById('msg-empty-chart');
+
+            if (appState.transactions.length === 0) {
+                chartCanvas.style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            emptyMsg.style.display = 'none';
+            chartCanvas.style.display = 'block';
+
+            const labelBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            let incomingMonthly = Array(12).fill(0);
+            let outgoingMonthly = Array(12).fill(0);
+
+            appState.transactions.forEach(tx => {
+                const dateObj = new Date(tx.date);
+                const monthIdx = dateObj.getMonth();
+                if (tx.type === 'income') {
+                    incomingMonthly[monthIdx] += tx.amount;
+                } else if (tx.type === 'expense') {
+                    outgoingMonthly[monthIdx] += tx.amount;
+                }
+            });
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            const ctx = chartCanvas.getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labelBulan,
+                    datasets: [
+                        {
+                            label: 'Kas Masuk',
+                            data: incomingMonthly,
+                            backgroundColor: 'rgba(0, 255, 163, 0.65)',
+                            borderColor: 'var(--accent-emerald)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Kas Keluar',
+                            data: outgoingMonthly,
+                            backgroundColor: 'rgba(255, 74, 90, 0.65)',
+                            borderColor: 'var(--accent-danger)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#c5c6c7', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#c5c6c7' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#c5c6c7' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function saveStateToStorage() {
+            localStorage.setItem('kyu_okami_finance_state', JSON.stringify(appState));
+        }
+
+        function loadStateFromStorage() {
+            const rawData = localStorage.getItem('kyu_okami_finance_state');
+            if (rawData) {
+                try {
+                    const loadedState = JSON.parse(rawData);
+                    appState = Object.assign(appState, loadedState);
+
+                    if (appState.targetSavings) {
+                        document.getElementById('input-target-val').value = appState.targetSavings;
+                    }
+                    recalculateFinanceState();
+                } catch (e) {
+                    console.error("Gagal parse berkas database lokal.", e);
                 }
             }
         }
-    </script>
 
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0b0f19;
-            color: #ffffff;
-            overflow-x: hidden;
+        function resetLedger() {
+            if (confirm("Apakah Anda yakin ingin menghapus seluruh data jurnal finansial ini? Semua pencatatan uang akan kembali ke Rp 0.")) {
+                localStorage.removeItem('kyu_okami_finance_state');
+                document.getElementById('input-target-val').value = '';
+                appState = {
+                    transactions: [],
+                    targetSavings: 0,
+                    profileImage: null, 
+                    totals: { saldo: 0, tabungan: 0, investasi: 0, pengeluaran: 0 },
+                    investDetails: { Saham: 0, Crypto: 0, Forex: 0, Emas: 0 }
+                };
+                if (myChart) {
+                    myChart.destroy();
+                    myChart = null;
+                }
+                renderProfile(); 
+                renderDashboardData();
+                switchSection('dashboard', document.querySelectorAll('.nav-links a')[0]);
+            }
         }
-        
-        h1, h2, h3, .font-space {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        /* Loading Screen */
-        #loader {
-            position: fixed;
-            inset: 0;
-            background: #0b0f19;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid transparent;
-            border-top-color: #00f3ff;
-            border-bottom-color: #bc13fe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Neon & Glassmorphism */
-        .glass {
-            background: rgba(21, 27, 43, 0.7);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0, 243, 255, 0.1);
-        }
-        
-        .text-gradient {
-            background: linear-gradient(to right, #00f3ff, #bc13fe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .neon-box {
-            background: #151b2b;
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .neon-box:hover {
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(188, 19, 254, 0.1);
-            border-color: #00f3ff;
-            transform: translateY(-5px);
-        }
-
-        .btn-neon {
-            background: transparent;
-            color: #00f3ff;
-            border: 1px solid #00f3ff;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-            transition: all 0.3s;
-        }
-        .btn-neon:hover {
-            background: #00f3ff;
-            color: #0b0f19;
-            box-shadow: 0 0 20px #00f3ff;
-        }
-
-        .btn-neon-purple {
-            background: #bc13fe;
-            color: white;
-            box-shadow: 0 0 15px rgba(188, 19, 254, 0.5);
-            transition: all 0.3s;
-        }
-        .btn-neon-purple:hover {
-            background: #d44cff;
-            box-shadow: 0 0 25px rgba(188, 19, 254, 0.8);
-        }
-
-        /* Scroll Animations */
-        .reveal {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.8s ease-out;
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
-        ::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 10px; }
-    </style>
-</head>
-<body class="antialiased selection:bg-neonPurple selection:text-white">
-
-    <!-- Loading Screen -->
-    <div id="loader">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Navbar -->
-    <nav class="fixed w-full z-50 glass transition-all duration-300" id="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="#beranda" class="text-2xl font-space font-bold tracking-wider">
-                        ALFIN<span class="text-gradient">DO.</span>
-                    </a>
-                </div>
-                
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-8">
-                    <a href="#beranda" class="text-gray-300 hover:text-neonBlue transition">Beranda</a>
-                    <a href="#tentang" class="text-gray-300 hover:text-neonBlue transition">Tentang</a>
-                    <a href="#layanan" class="text-gray-300 hover:text-neonBlue transition">Layanan</a>
-                    <a href="#portfolio" class="text-gray-300 hover:text-neonBlue transition">Portfolio</a>
-                    <a href="#kontak" class="text-gray-300 hover:text-neonBlue transition">Kontak</a>
-                </div>
-                
-                <div class="hidden md:flex">
-                    <a href="#kontak" class="btn-neon px-6 py-2 rounded-full font-semibold text-sm">Hire Me</a>
-                </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none text-2xl">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-cardBg border-b border-neonBlue">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 text-center">
-                <a href="#beranda" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-neonBlue mobile-link">Beranda</a>
-                <a href="#tentang" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-neonBlue mobile-link">Tentang</a>
-                <a href="#layanan" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-neonBlue mobile-link">Layanan</a>
-                <a href="#portfolio" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-neonBlue mobile-link">Portfolio</a>
-                <a href="#kontak" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-neonBlue mobile-link">Kontak</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Header / Hero Section -->
-    <section id="beranda" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-screen flex items-center">
-        <!-- Abstract Background Elements -->
-        <div class="absolute top-1/4 left-0 w-72 h-72 bg-neonBlue rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse"></div>
-        <div class="absolute bottom-1/4 right-0 w-72 h-72 bg-neonPurple rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center lg:text-left flex flex-col lg:flex-row items-center">
-            <div class="w-full lg:w-1/2 reveal">
-                <p class="text-neonBlue font-semibold tracking-wide mb-2 uppercase">Selamat Datang di Masa Depan</p>
-                <h1 class="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-                    Bangun Website <br>
-                    <span class="text-gradient">Bisnis Impianmu</span>
-                </h1>
-                <p class="text-gray-400 text-lg mb-8 max-w-2xl mx-auto lg:mx-0">
-                    Saya Alfindo, pengembang web profesional yang siap mengubah ide bisnismu menjadi website modern, cepat, dan responsif. Tingkatkan penjualan dan kredibilitas usahamu sekarang.
-                </p>
-                <div class="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-                    <a href="#portfolio" class="btn-neon-purple px-8 py-3 rounded-full font-bold text-lg text-center">Lihat Portfolio</a>
-                    <a href="#layanan" class="btn-neon px-8 py-3 rounded-full font-bold text-lg text-center">Layanan Saya</a>
-                </div>
-            </div>
-            
-            <div class="w-full lg:w-1/2 mt-16 lg:mt-0 reveal">
-                <div class="relative">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-neonBlue to-neonPurple rounded-full blur-2xl opacity-30"></div>
-                    <img src="gambar4.png" alt="Web Development" class="relative z-10 w-full max-w-md mx-auto floating-img rounded-2xl shadow-2xl border border-gray-800">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Tentang Section -->
-    <section id="tentang" class="py-20 bg-cardBg relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <h2 class="text-4xl font-bold font-space mb-4">Tentang <span class="text-neonBlue">Saya</span></h2>
-                <div class="w-24 h-1 bg-gradient-to-r from-neonBlue to-neonPurple mx-auto rounded-full"></div>
-            </div>
-
-            <div class="flex flex-col md:flex-row gap-12 items-center">
-                <div class="w-full md:w-5/12 reveal">
-                    <div class="neon-box p-2 rounded-2xl">
-                        <img src="gambar6.png" alt="Profile" class="w-full rounded-xl object-cover">
-                    </div>
-                </div>
-                
-                <div class="w-full md:w-7/12 reveal">
-                    <h3 class="text-3xl font-semibold mb-4">Halo! Saya <span class="text-gradient">Alfindo Ahmad Akbar</span></h3>
-                    <p class="text-gray-400 leading-relaxed mb-6">
-                        Saya adalah seorang Web Developer yang berbasis di Lampung, Indonesia. Saya memiliki passion dalam mendesain dan membangun website yang tidak hanya terlihat estetis, tetapi juga berfungsi secara maksimal untuk kebutuhan bisnis (Toko Online, Company Profile, dll).
-                    </p>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                        <div class="flex items-center space-x-3 text-gray-300">
-                            <i class="fas fa-calendar-alt text-neonBlue w-5"></i>
-                            <span>Lahir: 03 Maret 2007</span>
-                        </div>
-                        <div class="flex items-center space-x-3 text-gray-300">
-                            <i class="fas fa-map-marker-alt text-neonBlue w-5"></i>
-                            <span>Lokasi: Lampung, Indonesia</span>
-                        </div>
-                        <div class="flex items-center space-x-3 text-gray-300">
-                            <i class="fas fa-envelope text-neonBlue w-5"></i>
-                            <span>vesbisma@gmail.com</span>
-                        </div>
-                        <div class="flex items-center space-x-3 text-gray-300">
-                            <i class="fab fa-instagram text-neonBlue w-5"></i>
-                            <span>@alfindo.aa</span>
-                        </div>
-                    </div>
-
-                    <h4 class="text-xl font-semibold mb-4 text-white">Keahlian (Skills)</h4>
-                    <div class="space-y-4">
-                        <!-- Skill Bar -->
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium">HTML & CSS / Tailwind</span>
-                                <span class="text-sm font-medium text-neonBlue">95%</span>
-                            </div>
-                            <div class="w-full bg-gray-800 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-neonBlue to-neonPurple h-2 rounded-full" style="width: 95%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium">JavaScript & React</span>
-                                <span class="text-sm font-medium text-neonBlue">85%</span>
-                            </div>
-                            <div class="w-full bg-gray-800 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-neonBlue to-neonPurple h-2 rounded-full" style="width: 85%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium">UI/UX Design</span>
-                                <span class="text-sm font-medium text-neonBlue">90%</span>
-                            </div>
-                            <div class="w-full bg-gray-800 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-neonBlue to-neonPurple h-2 rounded-full" style="width: 90%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Layanan & Harga Section -->
-    <section id="layanan" class="py-20 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16 reveal">
-            <h2 class="text-4xl font-bold font-space mb-4">Layanan <span class="text-neonPurple">Terbaik</span></h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-neonBlue to-neonPurple mx-auto rounded-full mb-6"></div>
-            <p class="text-gray-400 max-w-2xl mx-auto">Solusi digital menyeluruh untuk mengembangkan bisnis Anda di era modern.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-            <div class="neon-box p-8 rounded-2xl text-center reveal">
-                <div class="w-16 h-16 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-6 text-neonBlue text-3xl">
-                    <i class="fas fa-store"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-3">Toko Online (E-Commerce)</h3>
-                <p class="text-gray-400 text-sm">Website jualan canggih dengan fitur keranjang belanja, integrasi pembayaran, dan manajemen produk.</p>
-            </div>
-            <div class="neon-box p-8 rounded-2xl text-center reveal" style="transition-delay: 0.2s;">
-                <div class="w-16 h-16 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-6 text-neonPurple text-3xl">
-                    <i class="fas fa-building"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-3">Company Profile</h3>
-                <p class="text-gray-400 text-sm">Tingkatkan kredibilitas perusahaan, sekolah, atau cafe Anda dengan website profil yang profesional.</p>
-            </div>
-            <div class="neon-box p-8 rounded-2xl text-center reveal" style="transition-delay: 0.4s;">
-                <div class="w-16 h-16 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-6 text-neonBlue text-3xl">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3 class="text-xl font-bold mb-3">Custom Web App</h3>
-                <p class="text-gray-400 text-sm">Pembuatan aplikasi web khusus dengan fitur login (Google, FB, dll), dashboard, dan database.</p>
-            </div>
-        </div>
-
-        <div class="text-center mb-12 reveal">
-            <h3 class="text-3xl font-bold font-space mb-2">Paket <span class="text-gradient">Harga</span></h3>
-            <p class="text-gray-400">Pilih paket yang sesuai dengan kebutuhan bisnismu.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-20">
-            <div class="neon-box p-8 rounded-2xl reveal">
-                <h4 class="text-2xl font-bold mb-2">Basic</h4>
-                <p class="text-gray-400 mb-6">Untuk personal / pemula</p>
-                <div class="text-4xl font-bold text-white mb-6">Mulai Rp 500.000</div>
-                <ul class="space-y-4 mb-8 text-gray-300">
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> 1 Halaman (Landing Page)</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Desain Responsif</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Gratis Domain .com 1 Thn</li>
-                    <li><i class="fas fa-times text-red-400 mr-2"></i> Tanpa Fitur E-Commerce</li>
-                </ul>
-                <a href="https://wa.me/6282185172376?text=Halo%20Alfindo,%20saya%20mau%20order%20Paket%20Web%20Basic" class="block w-full py-3 rounded-xl border border-neonBlue text-center text-neonBlue hover:bg-neonBlue hover:text-black transition">Pilih Paket</a>
-            </div>
-
-            <div class="neon-box p-10 rounded-2xl relative transform scale-105 border-neonPurple reveal" style="box-shadow: 0 0 30px rgba(188, 19, 254, 0.2);">
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-neonBlue to-neonPurple px-4 py-1 rounded-full text-sm font-bold">Terlaris</div>
-                <h4 class="text-2xl font-bold mb-2">Business Pro</h4>
-                <p class="text-gray-400 mb-6">Toko Online / Perusahaan</p>
-                <div class="text-4xl font-bold text-white mb-6">Mulai Rp 1.500.000</div>
-                <ul class="space-y-4 mb-8 text-gray-300">
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Multi Halaman (Max 5)</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Fitur Katalog / Toko</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Gratis Domain & Hosting</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Integrasi WhatsApp API</li>
-                </ul>
-                <a href="https://wa.me/6282185172376?text=Halo%20Alfindo,%20saya%20mau%20order%20Paket%20Business%20Pro" class="block w-full py-3 rounded-xl btn-neon-purple text-center transition">Pilih Paket</a>
-            </div>
-
-            <div class="neon-box p-8 rounded-2xl reveal">
-                <h4 class="text-2xl font-bold mb-2">Custom App</h4>
-                <p class="text-gray-400 mb-6">Aplikasi web kompleks</p>
-                <div class="text-4xl font-bold text-white mb-6">Hubungi Kami</div>
-                <ul class="space-y-4 mb-8 text-gray-300">
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Fitur Custom (Login, DB)</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Dashboard Admin Panel</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Server Premium (VPS)</li>
-                    <li><i class="fas fa-check text-green-400 mr-2"></i> Maintenance 3 Bulan</li>
-                </ul>
-                <a href="https://wa.me/6282185172376?text=Halo%20Alfindo,%20saya%20mau%20konsultasi%20Paket%20Custom%20App" class="block w-full py-3 rounded-xl border border-neonBlue text-center text-neonBlue hover:bg-neonBlue hover:text-black transition">Konsultasi</a>
-            </div>
-        </div>
-
-        <div class="reveal">
-            <div class="text-center mb-8">
-                <h4 class="text-xl font-bold font-space text-gray-300">Metode Pembayaran</h4>
-                <div class="w-16 h-0.5 bg-gray-700 mx-auto mt-2"></div>
-            </div>
-            <div class="flex flex-wrap justify-center gap-6 md:gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-university text-3xl mb-2 text-neonBlue"></i>
-                    <span class="text-xs uppercase tracking-widest">Bank Transfer</span>
-                </div>
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-wallet text-3xl mb-2 text-neonPurple"></i>
-                    <span class="text-xs uppercase tracking-widest">E-Wallet (DANA/OVO)</span>
-                </div>
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-qrcode text-3xl mb-2 text-neonBlue"></i>
-                    <span class="text-xs uppercase tracking-widest">QRIS Ready</span>
-                </div>
-            </div>
-            <p class="text-center text-gray-500 text-xs mt-8">*Pembayaran aman dan pengerjaan dimulai setelah konfirmasi pembayaran.</p>
-        </div>
-    </div>
-</section>
-
-    <!-- Portfolio Section -->
-    <section id="portfolio" class="py-20 bg-cardBg relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <h2 class="text-4xl font-bold font-space mb-4">Portfolio <span class="text-neonBlue">Karya</span></h2>
-                <div class="w-24 h-1 bg-gradient-to-r from-neonBlue to-neonPurple mx-auto rounded-full mb-6"></div>
-                <p class="text-gray-400">Beberapa contoh website yang pernah kami kembangkan untuk klien.</p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Portfolio Item 1 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800">
-                    <img src="gambar9.png" alt="Toko Online" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonBlue mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Website Toko Online</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Fashion E-Commerce</p>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 2 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800" style="transition-delay: 0.1s;">
-                    <img src="propilecofe.jpeg" alt="Cafe Web" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonPurple mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Website Cafe</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Sistem Reservasi & Menu</p>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 3 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800" style="transition-delay: 0.2s;">
-                    <img src="gambar7.png" alt="Company Profile" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonBlue mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Company Profile</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Agency Konstruksi</p>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 4 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800">
-                    <img src="otomotif2.jpeg" alt="Otomotif" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonPurple mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Website Otomotif</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Showroom Mobil</p>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 5 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800" style="transition-delay: 0.1s;">
-                    <img src="sekolah.jpeg" alt="Sekolah" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonBlue mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Website Sekolah</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Sistem Informasi Akademik</p>
-                    </div>
-                </div>
-
-                <!-- Portfolio Item 6 -->
-                <div class="group relative rounded-2xl overflow-hidden reveal cursor-pointer border border-gray-800" style="transition-delay: 0.2s;">
-                    <img src="gambar8.png" alt="Dashboard" class="w-full h-64 object-cover transform transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                        <h4 class="text-xl font-bold text-neonPurple mb-1 transform translate-y-4 group-hover:translate-y-0 transition-transform">Web Dashboard UI</h4>
-                        <p class="text-sm text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform delay-75">Aplikasi Kasir (POS)</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimoni & FAQ Section -->
-    <section class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                
-                <!-- Testimoni -->
-                <div class="reveal">
-                    <h2 class="text-3xl font-bold font-space mb-8">Apa Kata <span class="text-gradient">Klien?</span></h2>
-                    <div class="space-y-6">
-                        <div class="neon-box p-6 rounded-2xl">
-                            <div class="flex items-center mb-4">
-                                <img src="https://placehold.co/100x100/1e293b/00f3ff?text=A" alt="Client" class="w-12 h-12 rounded-full mr-4">
-                                <div>
-                                    <h4 class="font-bold">Budi Santoso</h4>
-                                    <p class="text-xs text-gray-400">Owner Cafe Senja</p>
-                                </div>
-                                <div class="ml-auto text-yellow-400 text-sm">
-                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                                </div>
-                            </div>
-                            <p class="text-gray-300 text-sm italic">"Hasilnya luar biasa! Website cafe saya jadi lebih modern dan fitur reservasinya sangat membantu operasional kami."</p>
-                        </div>
-                        
-                        <div class="neon-box p-6 rounded-2xl">
-                            <div class="flex items-center mb-4">
-                                <img src="https://placehold.co/100x100/1e293b/bc13fe?text=D" alt="Client" class="w-12 h-12 rounded-full mr-4">
-                                <div>
-                                    <h4 class="font-bold">Dina Marlina</h4>
-                                    <p class="text-xs text-gray-400">Founder Dina Fashion</p>
-                                </div>
-                                <div class="ml-auto text-yellow-400 text-sm">
-                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                                </div>
-                            </div>
-                            <p class="text-gray-300 text-sm italic">"Pengerjaan cepat, responsif saat dihubungi. Toko online saya langsung naik omsetnya karena loading web sangat cepat."</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FAQ -->
-                <div class="reveal">
-                    <h2 class="text-3xl font-bold font-space mb-8">Pertanyaan <span class="text-neonBlue">Umum</span> (FAQ)</h2>
-                    <div class="space-y-4">
-                        <!-- FAQ Item -->
-                        <div class="border border-gray-800 rounded-xl overflow-hidden bg-cardBg">
-                            <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
-                                <span class="font-semibold text-gray-200">Apakah harus langganan per tahun?</span>
-                                <i class="fas fa-chevron-down text-neonBlue transition-transform duration-300"></i>
-                            </button>
-                            <div class="faq-content hidden px-6 pb-4 text-gray-400 text-sm">
-                                Ya, untuk nama domain (misal: .com) dan server hosting harus diperpanjang setiap tahun agar website tetap bisa diakses publik. Kami menyediakan paket perpanjangan yang terjangkau.
-                            </div>
-                        </div>
-                        <!-- FAQ Item -->
-                        <div class="border border-gray-800 rounded-xl overflow-hidden bg-cardBg">
-                            <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
-                                <span class="font-semibold text-gray-200">Berapa lama proses pembuatan website?</span>
-                                <i class="fas fa-chevron-down text-neonBlue transition-transform duration-300"></i>
-                            </button>
-                            <div class="faq-content hidden px-6 pb-4 text-gray-400 text-sm">
-                                Tergantung kerumitan. Untuk Landing Page biasa memakan waktu 3-5 hari. Untuk Toko Online atau Company Profile sekitar 1-2 minggu.
-                            </div>
-                        </div>
-                        <!-- FAQ Item -->
-                        <div class="border border-gray-800 rounded-xl overflow-hidden bg-cardBg">
-                            <button class="faq-btn w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none">
-                                <span class="font-semibold text-gray-200">Apakah saya bisa edit konten sendiri nantinya?</span>
-                                <i class="fas fa-chevron-down text-neonBlue transition-transform duration-300"></i>
-                            </button>
-                            <div class="faq-content hidden px-6 pb-4 text-gray-400 text-sm">
-                                Tentu saja. Kami akan memberikan dashboard admin (CMS) yang user-friendly serta panduan singkat cara menggunakannya.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- Kontak Section -->
-    <section id="kontak" class="py-20 bg-cardBg relative border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <h2 class="text-4xl font-bold font-space mb-4">Mulai <span class="text-gradient">Proyekmu</span></h2>
-                <div class="w-24 h-1 bg-gradient-to-r from-neonBlue to-neonPurple mx-auto rounded-full mb-6"></div>
-                <p class="text-gray-400">Punya ide brilian? Mari diskusikan dan wujudkan menjadi website yang nyata.</p>
-            </div>
-
-            <div class="max-w-3xl mx-auto neon-box p-8 md:p-12 rounded-3xl reveal">
-            </div>
-        </div>
-    </section>
-
-    <!-- Custom Modal for Form Submission -->
-    <div id="successModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="neon-box p-8 rounded-2xl text-center max-w-sm mx-4 transform scale-90 transition-transform duration-300" id="modalContent">
-            <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                <i class="fas fa-check"></i>
-            </div>
-            <h3 class="text-2xl font-bold mb-2">Pesan Terkirim!</h3>
-            <p class="text-gray-400 mb-6">Terima kasih, saya akan segera menghubungi Anda melalui email.</p>
-            <button onclick="closeModal()" class="btn-neon px-6 py-2 rounded-full w-full">Tutup</button>
-        </div>
-    </div>
-
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/6282185172376" target="_blank" class="fixed bottom-6 right-6 w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:bg-green-400 hover:scale-110 transition-all z-50 animate-bounce">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <!-- Footer -->
-    <footer class="bg-black pt-16 pb-8 border-t border-gray-900">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-                <div>
-                    <a href="#" class="text-2xl font-space font-bold tracking-wider block mb-4">
-                        ALFIN<span class="text-gradient">DO.</span>
-                    </a>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">Membantu UMKM dan pengusaha muda beralih ke digital dengan website profesional dan elegan.</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-400 hover:text-neonBlue hover:bg-gray-800 transition"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 transition"><i class="fab fa-tiktok"></i></a>
-                        <a href="mailto:vesbisma@gmail.com" class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-gray-400 hover:text-neonPurple hover:bg-gray-800 transition"><i class="fas fa-envelope"></i></a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-bold mb-4 font-space">Tautan Cepat</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#beranda" class="hover:text-neonBlue transition">Beranda</a></li>
-                        <li><a href="#tentang" class="hover:text-neonBlue transition">Tentang</a></li>
-                        <li><a href="#layanan" class="hover:text-neonBlue transition">Layanan & Harga</a></li>
-                        <li><a href="#portfolio" class="hover:text-neonBlue transition">Portfolio</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-white font-bold mb-4 font-space">Kontak Info</h4>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li class="flex items-start"><i class="fas fa-map-marker-alt mt-1 mr-3 text-neonBlue"></i> Lampung, Indonesia</li>
-                        <li class="flex items-center"><i class="fas fa-envelope mr-3 text-neonPurple"></i> vesbisma@gmail.com</li>
-                        <li class="flex items-center"><i class="fab fa-instagram mr-3 text-neonBlue"></i> @alfindo.aa</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-800 pt-8 text-center flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-                <p>&copy; 2026 Alfindo Ahmad Akbar. All rights reserved.</p>
-                <p class="mt-2 md:mt-0">Didesain dengan <i class="fas fa-heart text-red-500 mx-1"></i> & Kode.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // 1. Loading Screen
-    window.addEventListener('load', () => {
-    const loader = document.getElementById('loader');
-    setTimeout(() => {
-        loader.style.opacity = '0';
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 500);
-    }, 800);
-});
-
-   // 2. Navbar Scroll Effect & Mobile Menu
-   const navbar = document.getElementById('navbar');
-   const mobileBtn = document.getElementById('mobile-menu-btn');
-   const mobileMenu = document.getElementById('mobile-menu');
-   const mobileLinks = document.querySelectorAll('.mobile-link');
-
-    window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('shadow-lg', 'bg-opacity-90');
-        navbar.classList.remove('py-2');
-    } else {
-        navbar.classList.remove('shadow-lg', 'bg-opacity-90');
-        navbar.classList.add('py-2');
-    }
-});
-
-    mobileBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('hidden');
-});
-
-     // Tutup menu mobile saat link diklik
-     mobileLinks.forEach(link => {
-     link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
-    });
-});
-
-       // 3. Scroll Reveal Animation
-        function reveal() {
-        var reveals = document.querySelectorAll(".reveal");
-        for (var i = 0; i < reveals.length; i++) {
-        var windowHeight = window.innerHeight;
-        var elementTop = reveals[i].getBoundingClientRect().top;
-        var elementVisible = 100;
-
-        if (elementTop < windowHeight - elementVisible) {
-            reveals[i].classList.add("active");
-        }
-    }
-}
-window.addEventListener("scroll", reveal);
-reveal(); // Jalankan saat awal load
-
-    // 4. FAQ Accordion Logic
-      const faqBtns = document.querySelectorAll('.faq-btn');
-      faqBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const content = btn.nextElementSibling;
-        const icon = btn.querySelector('i');
-        
-        content.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
-    });
-});
     </script>
 </body>
 </html>
